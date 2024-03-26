@@ -4,6 +4,9 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDF;
 import org.jdom.Element;
 
 import com.eclipsesource.json.Json;
@@ -381,6 +384,23 @@ public class UnitTypeTable  {
 		}
 		w.write("]}");
 	}
+
+    public Resource toRDF(Model model, String prefix) {
+        Resource uttNode = model.createResource(prefix + "mainUnitTypeTable");
+        uttNode.addProperty(RDF.type, model.createResource(prefix + "UnitTypeTable"));
+        switch (moveConflictResolutionStrategy) {
+            case 1 -> uttNode.addProperty(model.createProperty(prefix + "moveConflictResolutionStrategy"), "CANCEL_BOTH");
+            case 2 -> uttNode.addProperty(model.createProperty(prefix + "moveConflictResolutionStrategy"), "CANCEL_RANDOM");
+            case 3 -> uttNode.addProperty(model.createProperty(prefix + "moveConflictResolutionStrategy"), "CANCEL_ALTERNATING");
+        }
+        String utPrefix = prefix + "unit-type/";
+        model.setNsPrefix("unitType", utPrefix);
+        for (UnitType ut : unitTypes) {
+            Resource utNode = ut.toRDF(model, utPrefix);
+            uttNode.addProperty(model.createProperty(prefix + "hasUnitType"), utNode);
+        }
+        return uttNode;
+    }
     
    
     /**

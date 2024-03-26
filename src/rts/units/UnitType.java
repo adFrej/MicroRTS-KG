@@ -7,6 +7,10 @@ import com.eclipsesource.json.JsonValue;
 import java.io.Writer;
 import java.util.ArrayList;
 
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.jdom.Element;
 import util.XMLWriter;
 
@@ -340,7 +344,34 @@ public class UnitType {
 			first = false;
 		}
 		w.write("]}");
-    }     
+    }
+
+    public Resource toRDF(Model model, String prefix) {
+        Resource utNode = model.createResource(prefix + ID);
+        utNode.addProperty(RDF.type, model.createResource(prefix + "UnitType"));
+        utNode.addProperty(RDFS.label, name);
+        utNode.addLiteral(model.createProperty(prefix + "cost"), cost);
+        utNode.addLiteral(model.createProperty(prefix + "hp"), hp);
+        utNode.addLiteral(model.createProperty(prefix + "minDamage"), minDamage);
+        utNode.addLiteral(model.createProperty(prefix + "maxDamage"), maxDamage);
+        utNode.addLiteral(model.createProperty(prefix + "attackRange"), attackRange);
+        utNode.addLiteral(model.createProperty(prefix + "produceTime"), produceTime);
+        utNode.addLiteral(model.createProperty(prefix + "moveTime"), moveTime);
+        utNode.addLiteral(model.createProperty(prefix + "attackTime"), attackTime);
+        utNode.addLiteral(model.createProperty(prefix + "harvestTime"), harvestTime);
+        utNode.addLiteral(model.createProperty(prefix + "returnTime"), returnTime);
+        utNode.addLiteral(model.createProperty(prefix + "harvestAmount"), harvestAmount);
+        utNode.addLiteral(model.createProperty(prefix + "sightRadius"), sightRadius);
+        utNode.addLiteral(model.createProperty(prefix + "isResource"), isResource);
+        utNode.addLiteral(model.createProperty(prefix + "isStockpile"), isStockpile);
+        utNode.addLiteral(model.createProperty(prefix + "canHarvest"), canHarvest);
+        utNode.addLiteral(model.createProperty(prefix + "canMove"), canMove);
+        utNode.addLiteral(model.createProperty(prefix + "canAttack"), canAttack);
+        for (UnitType ut : produces) {
+            utNode.addProperty(model.createProperty(prefix + "produces"), model.getResource(String.valueOf(ut.ID)));
+        }
+        return utNode;
+    }
     
     /**
      * Creates a unit type from XML
