@@ -8,6 +8,7 @@ import rts.units.UnitTypeTable;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 
 public class GameGraph {
     private static final String DEFAULT_PREFIX = "http://microrts.com/";
@@ -28,6 +29,14 @@ public class GameGraph {
         model.setNsPrefix("unitTypeTable", uttPrefix);
         Resource uttNode = utt.toRDF(model, uttPrefix);
         gameNode.addProperty(model.createProperty( gamePrefix + "hasUnitTypeTable"), uttNode);
+    }
+
+    public ArrayList<String[]> getTriples() {
+        ArrayList<String[]> triples = new ArrayList<>();
+        model.listStatements().forEachRemaining(statement -> {
+            triples.add(new String[]{statement.getSubject().toString(), statement.getPredicate().toString(), statement.getObject().toString()});
+        });
+        return triples;
     }
 
     public String toTurtle() {
