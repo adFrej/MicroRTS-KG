@@ -39,6 +39,14 @@ public class GameGraph {
         return triples;
     }
 
+    public ArrayList<String> getUnitTypes() {
+        ArrayList<String> unitTypes = new ArrayList<>();
+        model.listResourcesWithProperty(RDF.type, model.createResource(gamePrefix + "unit-type-table/unit-type/" + "UnitType")).forEachRemaining(resource -> {
+            unitTypes.add(resource.getURI());
+        });
+        return unitTypes;
+    }
+
     public String toTurtle() {
         Writer writer = new StringWriter();
         model.write(writer, "TURTLE");
