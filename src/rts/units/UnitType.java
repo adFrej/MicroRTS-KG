@@ -6,6 +6,7 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -346,7 +347,7 @@ public class UnitType {
 		w.write("]}");
     }
 
-    public Resource toRDF(Model model, String prefix) {
+    public Resource toRDF(Model model, String prefix, Map<String, Integer> minValues, Map<String, Integer> maxValues) {
         Resource utNode = model.createResource(prefix + ID);
         utNode.addProperty(RDF.type, model.createResource(prefix + "UnitType"));
         utNode.addProperty(RDFS.label, name);
@@ -370,7 +371,60 @@ public class UnitType {
         for (UnitType ut : produces) {
             utNode.addProperty(model.createProperty(prefix + "produces"), model.getResource(String.valueOf(ut.ID)));
         }
+        for (String field : getNumericalFields()) {
+            try {
+                int value = this.getClass().getDeclaredField(field).getInt(this);
+                int minValue = minValues.get(field);
+                int maxValue = maxValues.get(field);
+                int threshold1 = (maxValue - minValue) / 3;
+                int threshold2 = 2 * threshold1;
+                String rating = "Medium";
+                if (value < minValue + threshold1) {
+                    if (isNumericalFieldAscending(field)) {
+                        rating = "Bad";
+                    } else {
+                        rating = "Good";
+                    }
+                } else if (value > maxValue - threshold2) {
+                    if (isNumericalFieldAscending(field)) {
+                        rating = "Good";
+                    } else {
+                        rating = "Bad";
+                    }
+                }
+                utNode.addLiteral(model.createProperty(prefix + field + "Rating"), rating);
+            } catch (NoSuchFieldException | NullPointerException e) {
+                continue;
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return utNode;
+    }
+
+    public static ArrayList<String> getNumericalFields() {
+        ArrayList<String> fields = new ArrayList<>();
+        fields.add("cost");
+        fields.add("hp");
+        fields.add("minDamage");
+        fields.add("maxDamage");
+        fields.add("attackRange");
+        fields.add("produceTime");
+        fields.add("moveTime");
+        fields.add("attackTime");
+        fields.add("harvestTime");
+        fields.add("returnTime");
+        fields.add("harvestAmount");
+        fields.add("sightRadius");
+        return fields;
+    }
+
+    public static boolean isNumericalFieldAscending(String field) {
+        return switch (field) {
+            case "cost", "produceTime", "moveTime", "attackTime", "harvestTime", "returnTime" ->
+                    false;
+            default -> true;
+        };
     }
     
     /**

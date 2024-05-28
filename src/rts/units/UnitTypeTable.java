@@ -2,7 +2,9 @@ package rts.units;
 
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -393,10 +395,35 @@ public class UnitTypeTable  {
             case 2 -> uttNode.addProperty(model.createProperty(prefix + "moveConflictResolutionStrategy"), "CANCEL_RANDOM");
             case 3 -> uttNode.addProperty(model.createProperty(prefix + "moveConflictResolutionStrategy"), "CANCEL_ALTERNATING");
         }
+
+        Map<String, Integer> minValues = new HashMap<>();
+        Map<String, Integer> maxValues = new HashMap<>();
+        for (String field : UnitType.getNumericalFields()) {
+            int minValue = Integer.MAX_VALUE;
+            int maxValue = Integer.MIN_VALUE;
+            for (UnitType ut : unitTypes) {
+                try {
+                    int value = (int) ut.getClass().getDeclaredField(field).get(ut);
+                    if (value < minValue) minValue = value;
+                    if (value > maxValue) maxValue = value;
+                } catch (NoSuchFieldException e) {
+                    continue;
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (minValue != Integer.MAX_VALUE) {
+                minValues.put(field, minValue);
+            }
+            if (maxValue != Integer.MIN_VALUE) {
+                maxValues.put(field, maxValue);
+            }
+        }
+
         String utPrefix = prefix + "unit-type/";
         model.setNsPrefix("unitType", utPrefix);
         for (UnitType ut : unitTypes) {
-            Resource utNode = ut.toRDF(model, utPrefix);
+            Resource utNode = ut.toRDF(model, utPrefix, minValues, maxValues);
             uttNode.addProperty(model.createProperty(prefix + "hasUnitType"), utNode);
         }
         return uttNode;
