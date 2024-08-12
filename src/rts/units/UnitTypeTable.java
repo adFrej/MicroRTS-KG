@@ -29,56 +29,56 @@ public class UnitTypeTable  {
      * Empty type table should not be used!
      */
     public static final int EMPTY_TYPE_TABLE = -1;
-    
+
     /**
-     * Version one 
+     * Version one
      */
     public static final int VERSION_ORIGINAL = 1;
-    
+
     /**
      * Version two (a fine tune of the original)
      */
     public static final int VERSION_ORIGINAL_FINETUNED = 2;
-    
+
     /**
      * A non-deterministic version (damages are random)
      */
     public static final int VERSION_NON_DETERMINISTIC = 3;
-    
+
     /**
      * A conflict resolution policy where move conflicts cancel both moves
      */
     public static final int MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH = 1;   // (default)
-    
+
     /**
-     * A conflict resolution policy where move conflicts are solved randomly 
+     * A conflict resolution policy where move conflicts are solved randomly
      */
     public static final int MOVE_CONFLICT_RESOLUTION_CANCEL_RANDOM = 2;   // (makes game non-deterministic)
-    
+
     /**
-     * A conflict resolution policy where move conflicts are solved by 
+     * A conflict resolution policy where move conflicts are solved by
      * alternating the units trying to move
      */
-    public static final int MOVE_CONFLICT_RESOLUTION_CANCEL_ALTERNATING = 3;   
-    
+    public static final int MOVE_CONFLICT_RESOLUTION_CANCEL_ALTERNATING = 3;
+
     /**
      * The list of unit types allowed in the game
      */
     List<UnitType> unitTypes = new ArrayList<>();
-    
+
     /**
      * Which move conflict resolution is being adopted
      */
     int moveConflictResolutionStrategy = MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH;
-        
+
     /**
      * Creates a UnitTypeTable with version {@link #VERSION_ORIGINAL} and
-     * move conflict resolution as {@link #MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH} 
+     * move conflict resolution as {@link #MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH}
      */
     public UnitTypeTable() {
         setUnitTypeTable(VERSION_ORIGINAL, MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH);
     }
-    
+
     /**
      * Creates a unit type table with specified version and move conflict resolution
      * as {@link #MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH}
@@ -87,9 +87,9 @@ public class UnitTypeTable  {
     public UnitTypeTable(int version) {
         setUnitTypeTable(version, MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH);
     }
-        
+
     /**
-     * Creates a unit type table specifying both the version and the move conflict 
+     * Creates a unit type table specifying both the version and the move conflict
      * resolution strategy
      * @param version
      * @param crs the move conflict resolution strategy
@@ -97,20 +97,20 @@ public class UnitTypeTable  {
     public UnitTypeTable(int version, int crs) {
         setUnitTypeTable(version, crs);
     }
-    
-    
+
+
     /**
-     * Sets the version and move conflict resolution strategy to use 
+     * Sets the version and move conflict resolution strategy to use
      * and configures the attributes of each unit type depending on the
-     * version 
+     * version
      * @param version
      * @param crs the move conflict resolution strategy
      */
-    public void setUnitTypeTable(int version, int crs) {       
+    public void setUnitTypeTable(int version, int crs) {
         moveConflictResolutionStrategy = crs;
-        
-        if (version == EMPTY_TYPE_TABLE) return;        
-        
+
+        if (version == EMPTY_TYPE_TABLE) return;
+
         // Create the unit types:
         // RESOURCE:
         UnitType resource = new UnitType();
@@ -121,8 +121,8 @@ public class UnitTypeTable  {
         resource.canMove = false;
         resource.canAttack = false;
         resource.sightRadius = 0;
-        addUnitType(resource);           
-                
+        addUnitType(resource);
+
         // BASE:
         UnitType base = new UnitType();
         base.name = "Base";
@@ -142,16 +142,16 @@ public class UnitTypeTable  {
         base.sightRadius = 5;
         addUnitType(base);
 
-        // BARRACKS: 
+        // BARRACKS:
         UnitType barracks = new UnitType();
         barracks.name = "Barracks";
         barracks.cost = 5;
         barracks.hp = 4;
         switch(version) {
-            case VERSION_ORIGINAL: 
+            case VERSION_ORIGINAL:
                 barracks.produceTime = 200;
                 break;
-            case VERSION_ORIGINAL_FINETUNED: 
+            case VERSION_ORIGINAL_FINETUNED:
             case VERSION_NON_DETERMINISTIC:
                 barracks.produceTime = 100;
                 break;
@@ -163,8 +163,8 @@ public class UnitTypeTable  {
         barracks.canAttack = false;
         barracks.sightRadius = 3;
         addUnitType(barracks);
-        
-        // WORKER: 
+
+        // WORKER:
         UnitType worker = new UnitType();
         worker.name = "Worker";
         worker.cost = 1;
@@ -191,9 +191,9 @@ public class UnitTypeTable  {
         worker.canMove = true;
         worker.canAttack = true;
         worker.sightRadius = 3;
-        addUnitType(worker);   
-        
-        // LIGHT: 
+        addUnitType(worker);
+
+        // LIGHT:
         UnitType light = new UnitType();
         light.name = "Light";
         light.cost = 2;
@@ -218,9 +218,9 @@ public class UnitTypeTable  {
         light.canMove = true;
         light.canAttack = true;
         light.sightRadius = 2;
-        addUnitType(light);           
+        addUnitType(light);
 
-        // HEAVY: 
+        // HEAVY:
         UnitType heavy = new UnitType();
         heavy.name = "Heavy";
         switch(version) {
@@ -236,12 +236,12 @@ public class UnitTypeTable  {
         heavy.attackRange = 1;
         heavy.produceTime = 120;
         switch(version) {
-            case VERSION_ORIGINAL: 
+            case VERSION_ORIGINAL:
                 heavy.moveTime = 12;
                 heavy.hp = 4;
                 heavy.cost = 2;
                 break;
-            case VERSION_ORIGINAL_FINETUNED: 
+            case VERSION_ORIGINAL_FINETUNED:
             case VERSION_NON_DETERMINISTIC:
                 heavy.moveTime = 10;
                 heavy.hp = 8;
@@ -255,9 +255,9 @@ public class UnitTypeTable  {
         heavy.canMove = true;
         heavy.canAttack = true;
         heavy.sightRadius = 2;
-        addUnitType(heavy);           
+        addUnitType(heavy);
 
-        // RANGED: 
+        // RANGED:
         UnitType ranged = new UnitType();
         ranged.name = "Ranged";
         ranged.cost = 2;
@@ -282,17 +282,17 @@ public class UnitTypeTable  {
         ranged.canMove = true;
         ranged.canAttack = true;
         ranged.sightRadius = 3;
-        addUnitType(ranged);     
-        
+        addUnitType(ranged);
 
-        base.produces(worker);  
+
+        base.produces(worker);
         barracks.produces(light);
-        barracks.produces(heavy); 
+        barracks.produces(heavy);
         barracks.produces(ranged);
         worker.produces(base);
         worker.produces(barracks);
     }
-    
+
     /**
      * Adds a new unit type to the game
      * @param ut
@@ -301,7 +301,7 @@ public class UnitTypeTable  {
         ut.ID = unitTypes.size();
         unitTypes.add(ut);
     }
-    
+
     /**
      * Retrieves a unit type by its numeric ID
      * @param ID
@@ -310,7 +310,7 @@ public class UnitTypeTable  {
     public UnitType getUnitType(int ID) {
         return unitTypes.get(ID);
     }
-    
+
     /**
      * Retrieves a unit type by its name. Returns null if name is not found.
      * @param name
@@ -330,7 +330,7 @@ public class UnitTypeTable  {
     public List<UnitType> getUnitTypes() {
         return unitTypes;
     }
-    
+
     /**
      * Returns the integer corresponding to the move conflict resolution strategy in use
      * @return
@@ -338,7 +338,7 @@ public class UnitTypeTable  {
     public int getMoveConflictResolutionStrategy() {
         return moveConflictResolutionStrategy;
     }
-    
+
     /**
      * Loop through the list of unit types and return the largest attack range
      * @return
@@ -362,13 +362,13 @@ public class UnitTypeTable  {
 			this.getClass().getName(),
 			"moveConflictResolutionStrategy=\"" + moveConflictResolutionStrategy + "\""
 		);
-		
+
 		for (UnitType ut : unitTypes)
 			ut.toxml(w);
-		
+
 		w.tag("/" + this.getClass().getName());
-	}   
-    
+	}
+
     /**
      * Writes a JSON representation of this UnitTypeTable
      * @param w
@@ -421,15 +421,14 @@ public class UnitTypeTable  {
         }
 
         String utPrefix = prefix + "unit-type/";
-        model.setNsPrefix("unitType", utPrefix);
         for (UnitType ut : unitTypes) {
             Resource utNode = ut.toRDF(model, utPrefix, minValues, maxValues);
             uttNode.addProperty(model.createProperty(prefix + "hasUnitType"), utNode);
         }
         return uttNode;
     }
-    
-   
+
+
     /**
      * Reads from XML and creates a UnitTypeTable
      * @param e
@@ -440,7 +439,7 @@ public class UnitTypeTable  {
 		utt.moveConflictResolutionStrategy = Integer.parseInt(
 			e.getAttributeValue("moveConflictResolutionStrategy")
 		);
-		
+
 		for (Object o : e.getChildren()) {
 			Element unittype_e = (Element) o;
 			utt.unitTypes.add(UnitType.createStub(unittype_e));
@@ -451,8 +450,8 @@ public class UnitTypeTable  {
 		}
 		return utt;
     }
-    
-    
+
+
     /**
      * Reads from a JSON string and creates a UnitTypeTable
      * @param JSON
@@ -465,9 +464,9 @@ public class UnitTypeTable  {
 			"moveConflictResolutionStrategy",
 			MOVE_CONFLICT_RESOLUTION_CANCEL_BOTH
 		);
-		
+
 		JsonArray a = o.get("unitTypes").asArray();
-		
+
 		for (JsonValue v : a.values()) {
 			JsonObject uto = v.asObject();
 			utt.unitTypes.add(UnitType.createStub(uto));
@@ -478,5 +477,5 @@ public class UnitTypeTable  {
 		}
 		return utt;
     }
-    
+
 }
