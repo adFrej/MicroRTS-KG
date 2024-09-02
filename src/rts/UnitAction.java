@@ -1,10 +1,12 @@
 package rts;
 
 import java.io.Writer;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 import org.jdom.Element;
 
 import com.eclipsesource.json.Json;
@@ -749,4 +751,26 @@ public class UnitAction {
             }
         }
     }
+
+    public static Map<Integer, Resource> createActionTypesRDF(Model model) {
+        Map<Integer, Resource> atNodes = new HashMap<>();
+        int[] actionTypes = new int[]{TYPE_NONE, TYPE_MOVE, TYPE_HARVEST, TYPE_RETURN, TYPE_PRODUCE, TYPE_ATTACK_LOCATION};
+        for (int actionType : actionTypes) {
+            Resource atNode = model.createResource(GameGraph.ACTION_PREFIX + actionType);
+            atNode.addProperty(RDF.type, model.createResource(GameGraph.ACTION_PREFIX + "ActionType"));
+            atNode.addProperty(RDFS.label, actionName[actionType]);
+            atNode.addProperty(RDFS.comment, actionsComments.get(actionType));
+            atNodes.put(actionType, atNode);
+        }
+        return atNodes;
+    }
+
+    private static final Map<Integer, String> actionsComments = Map.of(
+        TYPE_NONE, "no action is taken",
+        TYPE_MOVE, "moves the unit in the specified direction",
+        TYPE_HARVEST, "attempts to harvest from a resource in the specified direction",
+        TYPE_RETURN, "returns to base with a resource",
+        TYPE_PRODUCE, "produces a unit in the specified direction",
+        TYPE_ATTACK_LOCATION, "if there's a unit in the specified location, damages it"
+    );
 }

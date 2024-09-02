@@ -1,14 +1,10 @@
 package rts.units;
 
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
 import org.jdom.Element;
 
 import com.eclipsesource.json.Json;
@@ -387,15 +383,15 @@ public class UnitTypeTable  {
 		w.write("]}");
 	}
 
-    public Resource toRDF(Model model, String prefix) {
-        Resource uttNode = model.createResource(prefix + "mainUnitTypeTable");
-        uttNode.addProperty(RDF.type, model.createResource(prefix + "UnitTypeTable"));
+    public void addPropertiesRDF(Model model, Resource gameNode, String prefix) {
         switch (moveConflictResolutionStrategy) {
-            case 1 -> uttNode.addProperty(model.createProperty(prefix + "moveConflictResolutionStrategy"), "CANCEL_BOTH");
-            case 2 -> uttNode.addProperty(model.createProperty(prefix + "moveConflictResolutionStrategy"), "CANCEL_RANDOM");
-            case 3 -> uttNode.addProperty(model.createProperty(prefix + "moveConflictResolutionStrategy"), "CANCEL_ALTERNATING");
+            case 1 -> gameNode.addLiteral(model.createProperty(prefix + "hasMoveConflictResolutionStrategy"), "cancel both");
+            case 2 -> gameNode.addLiteral(model.createProperty(prefix + "hasMoveConflictResolutionStrategy"), "cancel random");
+            case 3 -> gameNode.addLiteral(model.createProperty(prefix + "hasMoveConflictResolutionStrategy"), "cancel alternating");
         }
+    }
 
+    public ArrayList<Resource> createUnitTypesRDF(Model model, Map<Integer, Resource> atNodes) {
         Map<String, Integer> minValues = new HashMap<>();
         Map<String, Integer> maxValues = new HashMap<>();
         for (String field : UnitType.getNumericalFields()) {
@@ -420,12 +416,13 @@ public class UnitTypeTable  {
             }
         }
 
-        String utPrefix = prefix + "unit-type/";
+        ArrayList<Resource> utNodes = new ArrayList<>();
+        Set<String> ratings = new HashSet<>();
         for (UnitType ut : unitTypes) {
-            Resource utNode = ut.toRDF(model, utPrefix, minValues, maxValues);
-            uttNode.addProperty(model.createProperty(prefix + "hasUnitType"), utNode);
+            Resource utNode = ut.toRDF(model, minValues, maxValues, atNodes, ratings);
+            utNodes.add(utNode);
         }
-        return uttNode;
+        return utNodes;
     }
 
 

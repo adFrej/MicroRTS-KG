@@ -4,49 +4,56 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
 import rts.units.UnitTypeTable;
 
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Map;
 
 public class GameGraph {
     private static final String DEFAULT_PREFIX = "http://microrts.com/";
     private static final String GAME_PREFIX = DEFAULT_PREFIX + "game/";
-    private static final String RATING_PREFIX = GAME_PREFIX + "rating/";
+    public static final String UNIT_PREFIX = GAME_PREFIX + "unit-type/";
+    public static final String ACTION_PREFIX = GAME_PREFIX + "action-type/";
+    public static final String RATING_PREFIX = GAME_PREFIX + "rating/";
 
     public enum Rating {
         BAD("Bad"), MEDIUM("Medium"), GOOD("Good");
 
         public final String name;
-        public final String uri;
 
         Rating(String name) {
             this.name = name;
-            this.uri = RATING_PREFIX + name;
         }
     }
 
     private final Model model = ModelFactory.createDefaultModel();
     private final Resource gameNode;
 
+    private Map<Integer, Resource> atNodes;
+
     public GameGraph() {
         gameNode = model.createResource(GAME_PREFIX + "mainGame");
         gameNode.addProperty(RDF.type, model.createResource(GAME_PREFIX + "Game"));
 
-        Resource ratingType = model.createResource(RATING_PREFIX + "Rating");
-        for (Rating rating : Rating.values()) {
-            Resource ratingNode = model.createResource(rating.uri);
-            ratingNode.addProperty(RDF.type, ratingType);
-            ratingNode.addProperty(RDFS.label, rating.name);
+        processActions();
+    }
+
+    private void processActions() {
+        String atPrefix = GAME_PREFIX + "action-type/";
+        atNodes = UnitAction.createActionTypesRDF(model);
+        for (Resource atNode : atNodes.values()) {
+            gameNode.addProperty(model.createProperty(GAME_PREFIX + "hasActionType"), atNode);
         }
     }
 
-    public void addUnitTypeTable(UnitTypeTable utt) {
-        String uttPrefix = GAME_PREFIX + "unit-type-table/";
-        Resource uttNode = utt.toRDF(model, uttPrefix);
-        gameNode.addProperty(model.createProperty( GAME_PREFIX + "hasUnitTypeTable"), uttNode);
+    public void processUnitTypeTable(UnitTypeTable utt) {
+        utt.addPropertiesRDF(model, gameNode, GAME_PREFIX);
+
+        for (Resource utNode : utt.createUnitTypesRDF(model, atNodes)) {
+            gameNode.addProperty(model.createProperty(GAME_PREFIX + "hasUnitType"), utNode);
+        }
     }
 
     public ArrayList<String[]> getTriples() {
@@ -59,10 +66,18 @@ public class GameGraph {
 
     public ArrayList<String> getUnitTypes() {
         ArrayList<String> unitTypes = new ArrayList<>();
-        model.listResourcesWithProperty(RDF.type, model.createResource(GAME_PREFIX + "unit-type-table/unit-type/" + "UnitType")).forEachRemaining(resource -> {
+        model.listResourcesWithProperty(RDF.type, model.createResource(UNIT_PREFIX + "UnitType")).forEachRemaining(resource -> {
             unitTypes.add(resource.getURI());
         });
         return unitTypes;
+    }
+
+    public ArrayList<String> getActionTypes() {
+        ArrayList<String> actionTypes = new ArrayList<>();
+        model.listResourcesWithProperty(RDF.type, model.createResource(ACTION_PREFIX + "ActionType")).forEachRemaining(resource -> {
+            actionTypes.add(resource.getURI());
+        });
+        return actionTypes;
     }
 
     public String toTurtle() {

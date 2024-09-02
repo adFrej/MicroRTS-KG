@@ -7,6 +7,7 @@ import com.eclipsesource.json.JsonValue;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -14,6 +15,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.jdom.Element;
 import rts.GameGraph;
+import rts.UnitAction;
 import util.XMLWriter;
 
 /**
@@ -348,30 +350,78 @@ public class UnitType {
 		w.write("]}");
     }
 
-    public Resource toRDF(Model model, String prefix, Map<String, Integer> minValues, Map<String, Integer> maxValues) {
-        Resource utNode = model.createResource(prefix + ID);
-        utNode.addProperty(RDF.type, model.createResource(prefix + "UnitType"));
+    public Resource toRDF(Model model, Map<String, Integer> minValues, Map<String, Integer> maxValues, Map<Integer, Resource> atNodes, Set<String> ratings) {
+        String utPrefix = GameGraph.UNIT_PREFIX;
+        String atPrefix = GameGraph.ACTION_PREFIX;
+        String rPrefix = GameGraph.RATING_PREFIX;
+
+        Resource utNode = model.createResource(utPrefix + ID);
+        utNode.addProperty(RDF.type, model.createResource(utPrefix + "UnitType"));
         utNode.addProperty(RDFS.label, name);
-        utNode.addLiteral(model.createProperty(prefix + "cost"), cost);
-        utNode.addLiteral(model.createProperty(prefix + "hp"), hp);
-        utNode.addLiteral(model.createProperty(prefix + "minDamage"), minDamage);
-        utNode.addLiteral(model.createProperty(prefix + "maxDamage"), maxDamage);
-        utNode.addLiteral(model.createProperty(prefix + "attackRange"), attackRange);
-        utNode.addLiteral(model.createProperty(prefix + "produceTime"), produceTime);
-        utNode.addLiteral(model.createProperty(prefix + "moveTime"), moveTime);
-        utNode.addLiteral(model.createProperty(prefix + "attackTime"), attackTime);
-        utNode.addLiteral(model.createProperty(prefix + "harvestTime"), harvestTime);
-        utNode.addLiteral(model.createProperty(prefix + "returnTime"), returnTime);
-        utNode.addLiteral(model.createProperty(prefix + "harvestAmount"), harvestAmount);
-        utNode.addLiteral(model.createProperty(prefix + "sightRadius"), sightRadius);
-        utNode.addLiteral(model.createProperty(prefix + "isResource"), isResource);
-        utNode.addLiteral(model.createProperty(prefix + "isStockpile"), isStockpile);
-        utNode.addLiteral(model.createProperty(prefix + "canHarvest"), canHarvest);
-        utNode.addLiteral(model.createProperty(prefix + "canMove"), canMove);
-        utNode.addLiteral(model.createProperty(prefix + "canAttack"), canAttack);
-        for (UnitType ut : produces) {
-            utNode.addProperty(model.createProperty(prefix + "produces"), model.getResource(String.valueOf(ut.ID)));
+
+        Resource atNoneNode = atNodes.get(UnitAction.TYPE_NONE);
+        utNode.addProperty(model.createProperty(utPrefix + "can"), atNoneNode);
+        atNoneNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
+        if (canMove) {
+            Resource atMoveNode = atNodes.get(UnitAction.TYPE_MOVE);
+            utNode.addProperty(model.createProperty(utPrefix + "can"), atMoveNode);
+            atMoveNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
         }
+        Resource atHarvestNode = atNodes.get(UnitAction.TYPE_HARVEST);
+        Resource atReturnNode = atNodes.get(UnitAction.TYPE_RETURN);
+        if (canHarvest) {
+            utNode.addProperty(model.createProperty(utPrefix + "can"), atHarvestNode);
+            atHarvestNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + "can"), atReturnNode);
+            atReturnNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
+        }
+        if (isResource) {
+            atHarvestNode.addProperty(model.createProperty(atPrefix + "targets"), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + "targetedBy"), atHarvestNode);
+        }
+        if (isStockpile) {
+            atReturnNode.addProperty(model.createProperty(atPrefix + "targets"), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + "targetedBy"), atReturnNode);
+        }
+        Resource atProduceNode = atNodes.get(UnitAction.TYPE_PRODUCE);
+        if (produces.size() > 0) {
+            utNode.addProperty(model.createProperty(utPrefix + "can"), atProduceNode);
+            atProduceNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
+        }
+        if (producedBy.size() > 0) {
+            atProduceNode.addProperty(model.createProperty(atPrefix + "targets"), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + "targetedBy"), atProduceNode);
+        }
+        if (canAttack) {
+            Resource atAttackNode = atNodes.get(UnitAction.TYPE_ATTACK_LOCATION);
+            utNode.addProperty(model.createProperty(utPrefix + "can"), atAttackNode);
+            atAttackNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
+            atAttackNode.addProperty(model.createProperty(atPrefix + "targets"), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + "targetedBy"), atAttackNode);
+        }
+
+        utNode.addLiteral(model.createProperty(utPrefix + "hasCost"), cost);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasHp"), hp);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasMinDamage"), minDamage);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasMaxDamage"), maxDamage);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasAttackRange"), attackRange);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasProduceTime"), produceTime);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasMoveTime"), moveTime);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasAttackTime"), attackTime);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasHarvestTime"), harvestTime);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasReturnTime"), returnTime);
+        utNode.addLiteral(model.createProperty(utPrefix + "hasHarvestAmount"), harvestAmount);
+
+        utNode.addLiteral(model.createProperty(utPrefix + "isResource"), isResource);
+        utNode.addLiteral(model.createProperty(utPrefix + "isStockpile"), isStockpile);
+
+        for (UnitType ut : produces) {
+            utNode.addProperty(model.createProperty(utPrefix + "produces"), model.createResource(utPrefix + ut.ID));
+        }
+        for (UnitType ut : producedBy) {
+            utNode.addProperty(model.createProperty(utPrefix + "producedBy"), model.createResource(utPrefix + ut.ID));
+        }
+
         for (String field : getNumericalFields()) {
             try {
                 int value = this.getClass().getDeclaredField(field).getInt(this);
@@ -393,7 +443,19 @@ public class UnitType {
                         rating = GameGraph.Rating.BAD;
                     }
                 }
-                utNode.addProperty(model.createProperty(prefix + field + "Rating"), rating.uri);
+                String ratingUri = rPrefix + field + rating.name;
+                Resource rNode = model.createResource(ratingUri);
+                if (!ratings.contains(ratingUri)) {
+                    ratings.add(ratingUri);
+                    rNode.addProperty(RDF.type, model.createResource(rPrefix + "Rating"));
+                    Resource atNode = atNodes.get(numericalFieldsActions.get(field));
+                    if (atNode != null) {
+                        rNode.addProperty(model.createProperty(rPrefix + "about"), atNode);
+                        atNode.addProperty(model.createProperty(atPrefix + "referencedBy"), rNode);
+                    }
+                }
+                utNode.addProperty(model.createProperty(utPrefix + "has"), rNode);
+                rNode.addProperty(model.createProperty(rPrefix + "referencedBy"), utNode);
             } catch (NoSuchFieldException | NullPointerException e) {
                 continue;
             } catch (IllegalAccessException e) {
@@ -416,7 +478,6 @@ public class UnitType {
         fields.add("harvestTime");
         fields.add("returnTime");
         fields.add("harvestAmount");
-        fields.add("sightRadius");
         return fields;
     }
 
@@ -427,6 +488,17 @@ public class UnitType {
             default -> true;
         };
     }
+
+    public static Map<String, Integer> numericalFieldsActions = Map.of(
+            "minDamage", UnitAction.TYPE_ATTACK_LOCATION,
+            "maxDamage", UnitAction.TYPE_ATTACK_LOCATION,
+            "attackRange", UnitAction.TYPE_ATTACK_LOCATION,
+            "moveTime", UnitAction.TYPE_MOVE,
+            "attackTime", UnitAction.TYPE_ATTACK_LOCATION,
+            "harvestTime", UnitAction.TYPE_HARVEST,
+            "returnTime", UnitAction.TYPE_RETURN,
+            "harvestAmount", UnitAction.TYPE_HARVEST
+    );
 
     /**
      * Creates a unit type from XML
