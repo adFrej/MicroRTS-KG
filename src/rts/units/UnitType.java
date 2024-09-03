@@ -356,7 +356,7 @@ public class UnitType {
         String rPrefix = GameGraph.RATING_PREFIX;
 
         Resource utNode = model.createResource(utPrefix + ID);
-        utNode.addProperty(RDF.type, model.createResource(utPrefix + "UnitType"));
+        utNode.addProperty(RDF.type, model.createResource(utPrefix + "Unit"));
         utNode.addProperty(RDFS.label, name);
 
         Resource atNoneNode = atNodes.get(UnitAction.TYPE_NONE);

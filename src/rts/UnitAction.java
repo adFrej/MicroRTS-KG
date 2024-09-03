@@ -757,7 +757,7 @@ public class UnitAction {
         int[] actionTypes = new int[]{TYPE_NONE, TYPE_MOVE, TYPE_HARVEST, TYPE_RETURN, TYPE_PRODUCE, TYPE_ATTACK_LOCATION};
         for (int actionType : actionTypes) {
             Resource atNode = model.createResource(GameGraph.ACTION_PREFIX + actionType);
-            atNode.addProperty(RDF.type, model.createResource(GameGraph.ACTION_PREFIX + "ActionType"));
+            atNode.addProperty(RDF.type, model.createResource(GameGraph.ACTION_PREFIX + "Action"));
             atNode.addProperty(RDFS.label, actionName[actionType]);
             atNode.addProperty(RDFS.comment, actionsComments.get(actionType));
             atNodes.put(actionType, atNode);

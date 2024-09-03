@@ -14,8 +14,8 @@ import java.util.Map;
 public class GameGraph {
     private static final String DEFAULT_PREFIX = "http://microrts.com/";
     private static final String GAME_PREFIX = DEFAULT_PREFIX + "game/";
-    public static final String UNIT_PREFIX = GAME_PREFIX + "unit-type/";
-    public static final String ACTION_PREFIX = GAME_PREFIX + "action-type/";
+    public static final String UNIT_PREFIX = GAME_PREFIX + "unit/";
+    public static final String ACTION_PREFIX = GAME_PREFIX + "action/";
     public static final String RATING_PREFIX = GAME_PREFIX + "rating/";
 
     public enum Rating {
@@ -41,10 +41,10 @@ public class GameGraph {
     }
 
     private void processActions() {
-        String atPrefix = GAME_PREFIX + "action-type/";
         atNodes = UnitAction.createActionTypesRDF(model);
         for (Resource atNode : atNodes.values()) {
-            gameNode.addProperty(model.createProperty(GAME_PREFIX + "hasActionType"), atNode);
+            gameNode.addProperty(model.createProperty(GAME_PREFIX + "has"), atNode);
+            atNode.addProperty(model.createProperty(ACTION_PREFIX + "belongsTo"), gameNode);
         }
     }
 
@@ -52,7 +52,8 @@ public class GameGraph {
         utt.addPropertiesRDF(model, gameNode, GAME_PREFIX);
 
         for (Resource utNode : utt.createUnitTypesRDF(model, atNodes)) {
-            gameNode.addProperty(model.createProperty(GAME_PREFIX + "hasUnitType"), utNode);
+            gameNode.addProperty(model.createProperty(GAME_PREFIX + "has"), utNode);
+            utNode.addProperty(model.createProperty(UNIT_PREFIX + "belongsTo"), gameNode);
         }
     }
 
@@ -66,7 +67,7 @@ public class GameGraph {
 
     public ArrayList<String> getUnitTypes() {
         ArrayList<String> unitTypes = new ArrayList<>();
-        model.listResourcesWithProperty(RDF.type, model.createResource(UNIT_PREFIX + "UnitType")).forEachRemaining(resource -> {
+        model.listResourcesWithProperty(RDF.type, model.createResource(UNIT_PREFIX + "Unit")).forEachRemaining(resource -> {
             unitTypes.add(resource.getURI());
         });
         return unitTypes;
@@ -74,7 +75,7 @@ public class GameGraph {
 
     public ArrayList<String> getActionTypes() {
         ArrayList<String> actionTypes = new ArrayList<>();
-        model.listResourcesWithProperty(RDF.type, model.createResource(ACTION_PREFIX + "ActionType")).forEachRemaining(resource -> {
+        model.listResourcesWithProperty(RDF.type, model.createResource(ACTION_PREFIX + "Action")).forEachRemaining(resource -> {
             actionTypes.add(resource.getURI());
         });
         return actionTypes;
