@@ -232,7 +232,7 @@ public class UnitType {
         produceTime = o.getInt("produceTime", 10);
         moveTime = o.getInt("moveTime", 10);
         attackTime = o.getInt("attackTime", 10);
-        harvestTime = o.getInt("produceTime", 10);
+        harvestTime = o.getInt("harvestTime", 10);
         produceTime = o.getInt("produceTime", 10);
 
         harvestAmount = o.getInt("harvestAmount", 10);
@@ -351,53 +351,78 @@ public class UnitType {
     }
 
     public Resource toRDF(Model model, Map<String, Integer> minValues, Map<String, Integer> maxValues, Map<Integer, Resource> atNodes, Set<String> ratings) {
-        String utPrefix = GameGraph.UNIT_PREFIX;
-        String atPrefix = GameGraph.ACTION_PREFIX;
-        String rPrefix = GameGraph.RATING_PREFIX;
+        final String utPrefix = GameGraph.UNIT_PREFIX;
+        final String atPrefix = GameGraph.ACTION_PREFIX;
+        final String rPrefix = GameGraph.RATING_PREFIX;
+
+        final String doesRelation = "does";
+        final String doneByRelation = "doneBy";
+        final String targetsRelation = "targets";
+        final String targetedByRelation = "targetedBy";
+        final String producesRelation = "produces";
+        final String producedByRelation = "producedBy";
+        final String ranksRelation = "ranks";
+        final String rankedByRelation = "rankedBy";
+        final String describesRelation = "describes";
+        final String describedByRelation = "describedBy";
+        final String createsRelation = "creates";
+        final String createdByRelation = "createdBy";
 
         Resource utNode = model.createResource(utPrefix + ID);
         utNode.addProperty(RDF.type, model.createResource(utPrefix + "Unit"));
         utNode.addProperty(RDFS.label, name);
 
         Resource atNoneNode = atNodes.get(UnitAction.TYPE_NONE);
-        utNode.addProperty(model.createProperty(utPrefix + "can"), atNoneNode);
-        atNoneNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
-        if (canMove) {
-            Resource atMoveNode = atNodes.get(UnitAction.TYPE_MOVE);
-            utNode.addProperty(model.createProperty(utPrefix + "can"), atMoveNode);
-            atMoveNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
-        }
+        Resource atMoveNode = atNodes.get(UnitAction.TYPE_MOVE);
         Resource atHarvestNode = atNodes.get(UnitAction.TYPE_HARVEST);
         Resource atReturnNode = atNodes.get(UnitAction.TYPE_RETURN);
+        Resource atProduceNode = atNodes.get(UnitAction.TYPE_PRODUCE);
+        Resource atAttackNode = atNodes.get(UnitAction.TYPE_ATTACK_LOCATION);
+
+        utNode.addProperty(model.createProperty(utPrefix + doesRelation), atNoneNode);
+        atNoneNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
+        if (canMove) {
+            utNode.addProperty(model.createProperty(utPrefix + doesRelation), atMoveNode);
+            atMoveNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
+        }
         if (canHarvest) {
-            utNode.addProperty(model.createProperty(utPrefix + "can"), atHarvestNode);
-            atHarvestNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
-            utNode.addProperty(model.createProperty(utPrefix + "can"), atReturnNode);
-            atReturnNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + doesRelation), atHarvestNode);
+            atHarvestNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + doesRelation), atReturnNode);
+            atReturnNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
+            UnitAction.createPrefers(atHarvestNode, model, "unit", "self", utNode);
+            UnitAction.createPrefers(atAttackNode, model, "unit", "target", utNode);
         }
         if (isResource) {
-            atHarvestNode.addProperty(model.createProperty(atPrefix + "targets"), utNode);
-            utNode.addProperty(model.createProperty(utPrefix + "targetedBy"), atHarvestNode);
+            atHarvestNode.addProperty(model.createProperty(atPrefix + targetsRelation), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + targetedByRelation), atHarvestNode);
         }
         if (isStockpile) {
-            atReturnNode.addProperty(model.createProperty(atPrefix + "targets"), utNode);
-            utNode.addProperty(model.createProperty(utPrefix + "targetedBy"), atReturnNode);
+            atReturnNode.addProperty(model.createProperty(atPrefix + targetsRelation), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + targetedByRelation), atReturnNode);
         }
-        Resource atProduceNode = atNodes.get(UnitAction.TYPE_PRODUCE);
         if (produces.size() > 0) {
-            utNode.addProperty(model.createProperty(utPrefix + "can"), atProduceNode);
-            atProduceNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + doesRelation), atProduceNode);
+            atProduceNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
         }
         if (producedBy.size() > 0) {
-            atProduceNode.addProperty(model.createProperty(atPrefix + "targets"), utNode);
-            utNode.addProperty(model.createProperty(utPrefix + "targetedBy"), atProduceNode);
+            atProduceNode.addProperty(model.createProperty(atPrefix + createsRelation), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + createdByRelation), atProduceNode);
         }
         if (canAttack) {
-            Resource atAttackNode = atNodes.get(UnitAction.TYPE_ATTACK_LOCATION);
-            utNode.addProperty(model.createProperty(utPrefix + "can"), atAttackNode);
-            atAttackNode.addProperty(model.createProperty(atPrefix + "doneBy"), utNode);
-            atAttackNode.addProperty(model.createProperty(atPrefix + "targets"), utNode);
-            utNode.addProperty(model.createProperty(utPrefix + "targetedBy"), atAttackNode);
+            utNode.addProperty(model.createProperty(utPrefix + doesRelation), atAttackNode);
+            atAttackNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
+            UnitAction.createPrefers(atAttackNode, model, "unit", "self", utNode);
+            UnitAction.createPrefers(atHarvestNode, model, "unit", "ally", utNode);
+            UnitAction.createPrefers(atMoveNode, model, "unit", "enemy", utNode);
+            if (attackRange > 1) {
+                UnitAction.createPrefers(atNoneNode, model, "unit", "self", utNode);
+                UnitAction.createPrefers(atAttackNode, model, "unit", "target", utNode);
+            }
+        }
+        if (!isResource) {
+            atAttackNode.addProperty(model.createProperty(atPrefix + targetsRelation), utNode);
+            utNode.addProperty(model.createProperty(utPrefix + targetedByRelation), atAttackNode);
         }
 
         utNode.addLiteral(model.createProperty(utPrefix + "hasCost"), cost);
@@ -416,10 +441,10 @@ public class UnitType {
         utNode.addLiteral(model.createProperty(utPrefix + "isStockpile"), isStockpile);
 
         for (UnitType ut : produces) {
-            utNode.addProperty(model.createProperty(utPrefix + "produces"), model.createResource(utPrefix + ut.ID));
+            utNode.addProperty(model.createProperty(utPrefix + producesRelation), model.createResource(utPrefix + ut.ID));
         }
         for (UnitType ut : producedBy) {
-            utNode.addProperty(model.createProperty(utPrefix + "producedBy"), model.createResource(utPrefix + ut.ID));
+            utNode.addProperty(model.createProperty(utPrefix + producedByRelation), model.createResource(utPrefix + ut.ID));
         }
 
         for (String field : getNumericalFields()) {
@@ -450,12 +475,12 @@ public class UnitType {
                     rNode.addProperty(RDF.type, model.createResource(rPrefix + "Rating"));
                     Resource atNode = atNodes.get(numericalFieldsActions.get(field));
                     if (atNode != null) {
-                        rNode.addProperty(model.createProperty(rPrefix + "about"), atNode);
-                        atNode.addProperty(model.createProperty(atPrefix + "referencedBy"), rNode);
+                        rNode.addProperty(model.createProperty(rPrefix + describesRelation), atNode);
+                        atNode.addProperty(model.createProperty(atPrefix + describedByRelation), rNode);
                     }
                 }
-                utNode.addProperty(model.createProperty(utPrefix + "has"), rNode);
-                rNode.addProperty(model.createProperty(rPrefix + "referencedBy"), utNode);
+                utNode.addProperty(model.createProperty(utPrefix + ranksRelation), rNode);
+                rNode.addProperty(model.createProperty(rPrefix + rankedByRelation), utNode);
             } catch (NoSuchFieldException | NullPointerException e) {
                 continue;
             } catch (IllegalAccessException e) {

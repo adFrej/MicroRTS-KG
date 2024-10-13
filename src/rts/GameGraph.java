@@ -18,6 +18,9 @@ public class GameGraph {
     public static final String ACTION_PREFIX = GAME_PREFIX + "action/";
     public static final String RATING_PREFIX = GAME_PREFIX + "rating/";
 
+    private static final String INCLUDES_RELATION = "includes";
+    private static final String INCLUDED_BY_RELATION = "includedBy";
+
     public enum Rating {
         BAD("Bad"), MEDIUM("Medium"), GOOD("Good");
 
@@ -43,8 +46,8 @@ public class GameGraph {
     private void processActions() {
         atNodes = UnitAction.createActionTypesRDF(model);
         for (Resource atNode : atNodes.values()) {
-            gameNode.addProperty(model.createProperty(GAME_PREFIX + "has"), atNode);
-            atNode.addProperty(model.createProperty(ACTION_PREFIX + "belongsTo"), gameNode);
+            gameNode.addProperty(model.createProperty(GAME_PREFIX + INCLUDES_RELATION), atNode);
+            atNode.addProperty(model.createProperty(ACTION_PREFIX + INCLUDED_BY_RELATION), gameNode);
         }
     }
 
@@ -52,8 +55,8 @@ public class GameGraph {
         utt.addPropertiesRDF(model, gameNode, GAME_PREFIX);
 
         for (Resource utNode : utt.createUnitTypesRDF(model, atNodes)) {
-            gameNode.addProperty(model.createProperty(GAME_PREFIX + "has"), utNode);
-            utNode.addProperty(model.createProperty(UNIT_PREFIX + "belongsTo"), gameNode);
+            gameNode.addProperty(model.createProperty(GAME_PREFIX + INCLUDES_RELATION), utNode);
+            utNode.addProperty(model.createProperty(UNIT_PREFIX + INCLUDED_BY_RELATION), gameNode);
         }
     }
 
