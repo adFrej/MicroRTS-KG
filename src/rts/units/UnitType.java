@@ -367,6 +367,8 @@ public class UnitType {
         final String describedByRelation = "describedBy";
         final String createsRelation = "creates";
         final String createdByRelation = "createdBy";
+        final String describesInCreatedByRelation = "describesInCreatedBy";
+        final String describedByInCreatesRelation = "describedByInCreates";
 
         Resource utNode = model.createResource(utPrefix + ID);
         utNode.addProperty(RDF.type, model.createResource(utPrefix + "Unit"));
@@ -472,6 +474,11 @@ public class UnitType {
                         rNode.addProperty(model.createProperty(rPrefix + describesRelation), atNode);
                         atNode.addProperty(model.createProperty(atPrefix + describedByRelation), rNode);
                     }
+                    atNode = atNodes.get(numericalFieldsCreatesActions.get(field));
+                    if (atNode != null) {
+                        rNode.addProperty(model.createProperty(rPrefix + describesInCreatedByRelation), atNode);
+                        atNode.addProperty(model.createProperty(atPrefix + describedByInCreatesRelation), rNode);
+                    }
                 }
                 utNode.addProperty(model.createProperty(utPrefix + ranksRelation), rNode);
                 rNode.addProperty(model.createProperty(rPrefix + rankedByRelation), utNode);
@@ -526,6 +533,11 @@ public class UnitType {
             "harvestTime", UnitAction.TYPE_HARVEST,
             "returnTime", UnitAction.TYPE_RETURN,
             "harvestAmount", UnitAction.TYPE_HARVEST
+    );
+
+    public static Map<String, Integer> numericalFieldsCreatesActions = Map.of(
+            "cost", UnitAction.TYPE_PRODUCE,
+            "produceTime", UnitAction.TYPE_PRODUCE
     );
 
     /**
