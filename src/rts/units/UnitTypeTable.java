@@ -399,6 +399,11 @@ public class UnitTypeTable  {
             int maxValue = Integer.MIN_VALUE;
             for (UnitType ut : unitTypes) {
                 try {
+                    String booleanField = UnitType.getNumericalFieldRelevantBooleanField(field);
+                    if (booleanField != null) {
+                        boolean can = (boolean) ut.getClass().getDeclaredField(booleanField).get(ut);
+                        if (!can) continue;
+                    }
                     int value = (int) ut.getClass().getDeclaredField(field).get(ut);
                     if (value < minValue) minValue = value;
                     if (value > maxValue) maxValue = value;

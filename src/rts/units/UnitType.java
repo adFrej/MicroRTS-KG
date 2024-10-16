@@ -425,18 +425,6 @@ public class UnitType {
             utNode.addProperty(model.createProperty(utPrefix + targetedByRelation), atAttackNode);
         }
 
-        utNode.addLiteral(model.createProperty(utPrefix + "hasCost"), cost);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasHp"), hp);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasMinDamage"), minDamage);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasMaxDamage"), maxDamage);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasAttackRange"), attackRange);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasProduceTime"), produceTime);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasMoveTime"), moveTime);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasAttackTime"), attackTime);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasHarvestTime"), harvestTime);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasReturnTime"), returnTime);
-        utNode.addLiteral(model.createProperty(utPrefix + "hasHarvestAmount"), harvestAmount);
-
         utNode.addLiteral(model.createProperty(utPrefix + "isResource"), isResource);
         utNode.addLiteral(model.createProperty(utPrefix + "isStockpile"), isStockpile);
 
@@ -449,11 +437,17 @@ public class UnitType {
 
         for (String field : getNumericalFields()) {
             try {
+                String booleanField = UnitType.getNumericalFieldRelevantBooleanField(field);
+                if (booleanField != null) {
+                    boolean can = (boolean) this.getClass().getDeclaredField(booleanField).get(this);
+                    if (!can) continue;
+                }
                 int value = this.getClass().getDeclaredField(field).getInt(this);
+                utNode.addLiteral(model.createProperty(utPrefix + "has" + field.substring(0, 1).toUpperCase() + field.substring(1)), value);
                 int minValue = minValues.get(field);
                 int maxValue = maxValues.get(field);
-                int threshold1 = (maxValue - minValue) / 3;
-                int threshold2 = 2 * threshold1;
+                double threshold1 = (maxValue - minValue) / 3.;
+                double threshold2 = 2 * threshold1;
                 GameGraph.Rating rating = GameGraph.Rating.MEDIUM;
                 if (value < minValue + threshold1) {
                     if (isNumericalFieldAscending(field)) {
@@ -504,6 +498,15 @@ public class UnitType {
         fields.add("returnTime");
         fields.add("harvestAmount");
         return fields;
+    }
+
+    public static String getNumericalFieldRelevantBooleanField(String field) {
+        return switch (field) {
+            case "minDamage", "maxDamage", "attackRange", "attackTime" -> "canAttack";
+            case "moveTime" -> "canMove";
+            case "harvestTime", "returnTime", "harvestAmount" -> "canHarvest";
+            default -> null;
+        };
     }
 
     public static boolean isNumericalFieldAscending(String field) {

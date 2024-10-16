@@ -760,12 +760,17 @@ public class UnitAction {
             atNode.addProperty(RDF.type, model.createResource(GameGraph.ACTION_PREFIX + "Action"));
             atNode.addProperty(RDFS.label, actionName[actionType]);
             atNode.addProperty(RDFS.comment, actionsComments.get(actionType));
-            atNode.addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "targetsSelf"), actionType == TYPE_NONE || actionType == TYPE_MOVE || actionType == TYPE_PRODUCE);
+            atNode.addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "targetsDistance"), switch (actionType) {
+                case TYPE_MOVE, TYPE_HARVEST, TYPE_RETURN, TYPE_PRODUCE -> "adjacent";
+                case TYPE_ATTACK_LOCATION -> "distant";
+                default -> "self";
+            });
             atNode.addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "targetsPlayer"), switch (actionType) {
-                case TYPE_NONE, TYPE_MOVE, TYPE_RETURN, TYPE_PRODUCE -> "friendly";
+                case TYPE_RETURN -> "friendly";
                 case TYPE_HARVEST -> "neutral";
                 case TYPE_ATTACK_LOCATION -> "enemy";
-                default -> "neutral";
+                case TYPE_MOVE, TYPE_PRODUCE -> "empty";
+                default -> "friendly";
             });
             atNodes.put(actionType, atNode);
         }
