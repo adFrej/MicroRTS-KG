@@ -401,8 +401,14 @@ public class UnitTypeTable  {
                 try {
                     String booleanField = UnitType.getNumericalFieldRelevantBooleanField(field);
                     if (booleanField != null) {
-                        boolean can = (boolean) ut.getClass().getDeclaredField(booleanField).get(ut);
-                        if (!can) continue;
+                        if (booleanField.startsWith("not")) {
+                            booleanField = booleanField.substring(3);
+                            boolean can = !(boolean) this.getClass().getDeclaredField(booleanField).get(this);
+                            if (!can) continue;
+                        } else {
+                            boolean can = (boolean) this.getClass().getDeclaredField(booleanField).get(this);
+                            if (!can) continue;
+                        }
                     }
                     int value = (int) ut.getClass().getDeclaredField(field).get(ut);
                     if (value < minValue) minValue = value;

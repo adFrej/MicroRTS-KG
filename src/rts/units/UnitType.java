@@ -369,6 +369,7 @@ public class UnitType {
         final String createdByRelation = "createdBy";
         final String describesInCreatedByRelation = "describesInCreatedBy";
         final String describedByInCreatesRelation = "describedByInCreates";
+        final String aimsAtRelation = "aimsAt";
 
         Resource utNode = model.createResource(utPrefix + ID);
         utNode.addProperty(RDF.type, model.createResource(utPrefix + "Unit"));
@@ -394,6 +395,18 @@ public class UnitType {
             atReturnNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
             UnitAction.createPrefers(atHarvestNode, model, "unit", "self", utNode);
             UnitAction.createPrefers(atAttackNode, model, "unit", "target", utNode);
+            utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                    addLiteral(model.createProperty(utPrefix + "relation"), "neutral").
+                    addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 0)). // resource
+                    addProperty(model.createProperty(utPrefix + "if"), model.createResource().
+                            addLiteral(model.createProperty(utPrefix + "statistic"), "resources").
+                            addLiteral(model.createProperty(utPrefix + "value"), "low")));
+            utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                    addLiteral(model.createProperty(utPrefix + "relation"), "friendly").
+                    addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 1)). // base
+                    addProperty(model.createProperty(utPrefix + "if"), model.createResource().
+                            addLiteral(model.createProperty(utPrefix + "statistic"), "resources").
+                            addLiteral(model.createProperty(utPrefix + "value"), "high")));
         }
         if (isResource) {
             atHarvestNode.addProperty(model.createProperty(atPrefix + targetsRelation), utNode);
@@ -406,6 +419,15 @@ public class UnitType {
         if (produces.size() > 0) {
             utNode.addProperty(model.createProperty(utPrefix + doesRelation), atProduceNode);
             atProduceNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
+            if (produces.stream().anyMatch(it -> it.canHarvest)) {
+                utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "relation"), "neutral").
+                        addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 0))); // resource
+            }
+            else if (produces.stream().anyMatch(it -> it.canAttack)) {
+                utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "relation"), "enemy"));
+            }
         }
         if (producedBy.size() > 0) {
             atProduceNode.addProperty(model.createProperty(atPrefix + createsRelation), utNode);
@@ -415,11 +437,15 @@ public class UnitType {
             utNode.addProperty(model.createProperty(utPrefix + doesRelation), atAttackNode);
             atAttackNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
             UnitAction.createPrefers(atAttackNode, model, "unit", "self", utNode);
-            UnitAction.createPrefers(atHarvestNode, model, "unit", "ally", utNode);
+            UnitAction.createPrefers(atHarvestNode, model, "unit", "friendly", utNode);
             UnitAction.createPrefers(atMoveNode, model, "unit", "enemy", utNode);
             if (attackRange > 1) {
                 UnitAction.createPrefers(atNoneNode, model, "unit", "self", utNode);
                 UnitAction.createPrefers(atAttackNode, model, "unit", "target", utNode);
+            }
+            if (!canHarvest) {
+                utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "relation"), "enemy"));
             }
         }
         if (!isResource) {
@@ -441,8 +467,14 @@ public class UnitType {
             try {
                 String booleanField = UnitType.getNumericalFieldRelevantBooleanField(field);
                 if (booleanField != null) {
-                    boolean can = (boolean) this.getClass().getDeclaredField(booleanField).get(this);
-                    if (!can) continue;
+                    if (booleanField.startsWith("not")) {
+                        booleanField = booleanField.substring(3);
+                        boolean can = !(boolean) this.getClass().getDeclaredField(booleanField).get(this);
+                        if (!can) continue;
+                    } else {
+                        boolean can = (boolean) this.getClass().getDeclaredField(booleanField).get(this);
+                        if (!can) continue;
+                    }
                 }
                 int value = this.getClass().getDeclaredField(field).getInt(this);
                 utNode.addLiteral(model.createProperty(utPrefix + "has" + field.substring(0, 1).toUpperCase() + field.substring(1)), value);
@@ -512,6 +544,7 @@ public class UnitType {
             case "minDamage", "maxDamage", "attackRange", "attackTime" -> "canAttack";
             case "moveTime" -> "canMove";
             case "harvestTime", "returnTime", "harvestAmount" -> "canHarvest";
+            case "cost", "produceTime", "hp" -> "notisResource";
             default -> null;
         };
     }
