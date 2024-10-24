@@ -514,9 +514,7 @@ public class UnitType {
                 }
                 utNode.addProperty(model.createProperty(utPrefix + ranksRelation), rNode);
                 rNode.addProperty(model.createProperty(rPrefix + rankedByRelation), utNode);
-            } catch (NoSuchFieldException | NullPointerException e) {
-                continue;
-            } catch (IllegalAccessException e) {
+            } catch (NoSuchFieldException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         }

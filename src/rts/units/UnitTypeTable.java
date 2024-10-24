@@ -403,19 +403,17 @@ public class UnitTypeTable  {
                     if (booleanField != null) {
                         if (booleanField.startsWith("not")) {
                             booleanField = booleanField.substring(3);
-                            boolean can = !(boolean) this.getClass().getDeclaredField(booleanField).get(this);
+                            boolean can = !(boolean) ut.getClass().getDeclaredField(booleanField).get(ut);
                             if (!can) continue;
                         } else {
-                            boolean can = (boolean) this.getClass().getDeclaredField(booleanField).get(this);
+                            boolean can = (boolean) ut.getClass().getDeclaredField(booleanField).get(ut);
                             if (!can) continue;
                         }
                     }
                     int value = (int) ut.getClass().getDeclaredField(field).get(ut);
                     if (value < minValue) minValue = value;
                     if (value > maxValue) maxValue = value;
-                } catch (NoSuchFieldException e) {
-                    continue;
-                } catch (IllegalAccessException e) {
+                } catch (NoSuchFieldException | IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
             }
