@@ -370,6 +370,7 @@ public class UnitType {
         final String describesInCreatedByRelation = "describesInCreatedBy";
         final String describedByInCreatesRelation = "describedByInCreates";
         final String aimsAtRelation = "aimsAt";
+        final String aimsAtDefaultRelation = "aimsAtDefault";
 
         Resource utNode = model.createResource(utPrefix + ID);
         utNode.addProperty(RDF.type, model.createResource(utPrefix + "Unit"));
@@ -446,6 +447,9 @@ public class UnitType {
             if (!canHarvest) {
                 utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
                         addLiteral(model.createProperty(utPrefix + "relation"), "enemy"));
+            }
+            else {
+                utNode.addLiteral(model.createProperty(utPrefix + aimsAtDefaultRelation), "enemy");
             }
         }
         if (!isResource) {

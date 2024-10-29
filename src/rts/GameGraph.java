@@ -54,7 +54,7 @@ public class GameGraph {
     public void processUnitTypeTable(UnitTypeTable utt) {
         utt.addPropertiesRDF(model, gameNode, GAME_PREFIX);
 
-        for (Resource utNode : utt.createUnitTypesRDF(model, atNodes)) {
+        for (Resource utNode : utt.createUnitTypesRDF(model, atNodes, gameNode, GAME_PREFIX)) {
             gameNode.addProperty(model.createProperty(GAME_PREFIX + INCLUDES_RELATION), utNode);
             utNode.addProperty(model.createProperty(UNIT_PREFIX + INCLUDED_BY_RELATION), gameNode);
         }

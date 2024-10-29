@@ -391,7 +391,7 @@ public class UnitTypeTable  {
         }
     }
 
-    public ArrayList<Resource> createUnitTypesRDF(Model model, Map<Integer, Resource> atNodes) {
+    public ArrayList<Resource> createUnitTypesRDF(Model model, Map<Integer, Resource> atNodes, Resource gameNode, String prefix) {
         Map<String, Integer> minValues = new HashMap<>();
         Map<String, Integer> maxValues = new HashMap<>();
         for (String field : UnitType.getNumericalFields()) {
@@ -424,6 +424,8 @@ public class UnitTypeTable  {
                 maxValues.put(field, maxValue);
             }
         }
+
+        gameNode.addLiteral(model.createProperty(prefix + "hasMaxAttackRange"), maxValues.get("attackRange"));
 
         ArrayList<Resource> utNodes = new ArrayList<>();
         Set<String> ratings = new HashSet<>();
