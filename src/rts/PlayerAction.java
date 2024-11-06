@@ -406,7 +406,7 @@ public class PlayerAction {
             // 3. The unit is not currently busy (its unit action is null)
             if (u != null && u.getPlayer() == currentPlayer && gs.unitActions.get(u) == null) {
                 UnitAction ua = UnitAction.fromVectorAction(action, utt, gs, u, maxAttackRadius);
-                if (ua.resourceUsage(u, gs.pgs).consistentWith(pa.getResourceUsage(), gs)) {
+                if (pa.getResourceUsage().consistentWith(ua.resourceUsage(u, gs.pgs), gs)) {
                     ResourceUsage ru = ua.resourceUsage(u, gs.pgs);
                     pa.getResourceUsage().merge(ru);                        
                     pa.addUnitAction(u, ua);

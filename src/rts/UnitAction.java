@@ -147,6 +147,8 @@ public class UnitAction {
      * @param a_direction
      */
     public UnitAction(int a_type, int a_direction) {
+        if (a_type == TYPE_NONE)
+            a_direction = -1;
         type = a_type;
         parameter = a_direction;
     }
@@ -159,6 +161,8 @@ public class UnitAction {
      * @param a_unit_type
      */
     public UnitAction(int a_type, int a_direction, UnitType a_unit_type) {
+        if (a_type == TYPE_NONE)
+            a_direction = -1;
         type = a_type;
         parameter = a_direction;
         unitType = a_unit_type;
