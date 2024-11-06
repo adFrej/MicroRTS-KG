@@ -779,27 +779,22 @@ public class UnitAction {
             atNodes.put(actionType, atNode);
         }
 
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "hp", "self", "high");
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "hp", "target", "low");
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "resources", "target", "high");
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "friendly", atNodes.get(TYPE_HARVEST));
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "friendly", atNodes.get(TYPE_RETURN));
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "friendly", atNodes.get(TYPE_PRODUCE));
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_HARVEST));
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_RETURN));
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_PRODUCE));
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "hp", "self", "high", 0.2);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "hp", "target", "low", 0.6);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "resources", "target", "high", 0.4);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_HARVEST), 0.3);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_RETURN), 0.3);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_PRODUCE), 0.3);
 
         createNeeds(atNodes.get(TYPE_HARVEST), model, "resources", "self", "low");
-        createPrefers(atNodes.get(TYPE_HARVEST), model, "resources", "self", "low");
-        createPrefers(atNodes.get(TYPE_HARVEST), model, "resources", "target", "high");
+        createPrefers(atNodes.get(TYPE_HARVEST), model, "resources", "self", "low", 5.0);
 
         createNeeds(atNodes.get(TYPE_RETURN), model, "resources", "self", "high");
-        createPrefers(atNodes.get(TYPE_RETURN), model, "resources", "self", "high");
-        createPrefers(atNodes.get(TYPE_RETURN), model, "resources", "target", "low");
+        createPrefers(atNodes.get(TYPE_RETURN), model, "resources", "self", "high", 5.0);
 
-        createPrefers(atNodes.get(TYPE_MOVE), model, "resources", "self", "high");
-        createPrefers(atNodes.get(TYPE_MOVE), model, "hp", "self", "low");
-        createPrefers(atNodes.get(TYPE_MOVE), model, "action", "enemy", atNodes.get(TYPE_ATTACK_LOCATION));
+        createPrefers(atNodes.get(TYPE_MOVE), model, "resources", "self", "high", 0.2);
+        createPrefers(atNodes.get(TYPE_MOVE), model, "hp", "self", "low", 0.2);
+        createPrefers(atNodes.get(TYPE_MOVE), model, "action", "enemy", atNodes.get(TYPE_ATTACK_LOCATION), 0.2);
 
 //        createPrefers(atNodes.get(TYPE_PRODUCE), model, "resources", "self", "low");
 
@@ -813,18 +808,20 @@ public class UnitAction {
                 addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "value"), value));
     }
 
-    public static void createPrefers(Resource atNode, Model model, String statistics, String in, String value) {
+    public static void createPrefers(Resource atNode, Model model, String statistics, String in, String value, double weight) {
         atNode.addProperty(model.createProperty(GameGraph.ACTION_PREFIX + "prefers"), model.createResource().
                 addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "statistic"), statistics).
                 addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "in"), in).
-                addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "value"), value));
+                addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "value"), value).
+                addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "weight"), weight));
     }
 
-    public static void createPrefers(Resource atNode, Model model, String statistics, String in, Resource value) {
+    public static void createPrefers(Resource atNode, Model model, String statistics, String in, Resource value, double weight) {
         atNode.addProperty(model.createProperty(GameGraph.ACTION_PREFIX + "prefers"), model.createResource().
                 addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "statistic"), statistics).
                 addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "in"), in).
-                addProperty(model.createProperty(GameGraph.ACTION_PREFIX + "value"), value));
+                addProperty(model.createProperty(GameGraph.ACTION_PREFIX + "value"), value).
+                addLiteral(model.createProperty(GameGraph.ACTION_PREFIX + "weight"), weight));
     }
 
     private static final Map<Integer, String> actionsComments = Map.of(

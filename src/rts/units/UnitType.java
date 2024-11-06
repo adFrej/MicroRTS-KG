@@ -370,7 +370,6 @@ public class UnitType {
         final String describesInCreatedByRelation = "describesInCreatedBy";
         final String describedByInCreatesRelation = "describedByInCreates";
         final String aimsAtRelation = "aimsAt";
-        final String aimsAtDefaultRelation = "aimsAtDefault";
 
         Resource utNode = model.createResource(utPrefix + ID);
         utNode.addProperty(RDF.type, model.createResource(utPrefix + "Unit"));
@@ -394,20 +393,23 @@ public class UnitType {
             atHarvestNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
             utNode.addProperty(model.createProperty(utPrefix + doesRelation), atReturnNode);
             atReturnNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
-            UnitAction.createPrefers(atHarvestNode, model, "unit", "self", utNode);
-            UnitAction.createPrefers(atAttackNode, model, "unit", "target", utNode);
+            UnitAction.createPrefers(atHarvestNode, model, "unit", "self", utNode, 0.2);
+            UnitAction.createPrefers(atAttackNode, model, "unit", "target", utNode, 0.3);
             utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                    addLiteral(model.createProperty(utPrefix + "priority"), 0).
                     addLiteral(model.createProperty(utPrefix + "relation"), "neutral").
                     addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 0)). // resource
                     addProperty(model.createProperty(utPrefix + "if"), model.createResource().
                             addLiteral(model.createProperty(utPrefix + "statistic"), "resources").
                             addLiteral(model.createProperty(utPrefix + "value"), "low")));
             utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                    addLiteral(model.createProperty(utPrefix + "priority"), 0).
                     addLiteral(model.createProperty(utPrefix + "relation"), "friendly").
                     addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 1)). // base
                     addProperty(model.createProperty(utPrefix + "if"), model.createResource().
                             addLiteral(model.createProperty(utPrefix + "statistic"), "resources").
                             addLiteral(model.createProperty(utPrefix + "value"), "high")));
+            createPrefers(utNode, model, model.createResource(utPrefix + 3), "friendly", "below", 0.5, 6., 0.5);
         }
         if (isResource) {
             atHarvestNode.addProperty(model.createProperty(atPrefix + targetsRelation), utNode);
@@ -422,12 +424,20 @@ public class UnitType {
             atProduceNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
             if (produces.stream().anyMatch(it -> it.canHarvest)) {
                 utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "priority"), 0).
                         addLiteral(model.createProperty(utPrefix + "relation"), "neutral").
                         addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 0))); // resource
+                createPrefers(utNode, model, utNode, "friendly", "below", 0., 10., 3.0);
             }
             else if (produces.stream().anyMatch(it -> it.canAttack)) {
                 utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
-                        addLiteral(model.createProperty(utPrefix + "relation"), "enemy"));
+                        addLiteral(model.createProperty(utPrefix + "priority"), 0).
+                        addLiteral(model.createProperty(utPrefix + "relation"), "enemy").
+                        addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 1))); // base
+                createPrefers(utNode, model, utNode, "friendly", "below", 0., 1.5, 1.0);
+                for (UnitType ut : produces) {
+                    createPrefers(utNode, model, model.createResource(utPrefix + ut.ID), "friendly", "below", 0.1, 0.3);
+                }
             }
         }
         if (producedBy.size() > 0) {
@@ -437,19 +447,43 @@ public class UnitType {
         if (canAttack) {
             utNode.addProperty(model.createProperty(utPrefix + doesRelation), atAttackNode);
             atAttackNode.addProperty(model.createProperty(atPrefix + doneByRelation), utNode);
-            UnitAction.createPrefers(atAttackNode, model, "unit", "self", utNode);
-            UnitAction.createPrefers(atHarvestNode, model, "unit", "friendly", utNode);
-            UnitAction.createPrefers(atMoveNode, model, "unit", "enemy", utNode);
             if (attackRange > 1) {
-                UnitAction.createPrefers(atNoneNode, model, "unit", "self", utNode);
-                UnitAction.createPrefers(atAttackNode, model, "unit", "target", utNode);
+                UnitAction.createPrefers(atNoneNode, model, "unit", "self", utNode, 0.2);
+                UnitAction.createPrefers(atAttackNode, model, "unit", "target", utNode, 0.5);
             }
             if (!canHarvest) {
+                UnitAction.createPrefers(atAttackNode, model, "unit", "self", utNode, 0.2);
+                createPrefers(utNode, model, utNode, "friendly", "below", 0.1, 0.5);
                 utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "priority"), 0).
+                        addLiteral(model.createProperty(utPrefix + "relation"), "enemy").
+                        addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 1))); // base
+                utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "priority"), 1).
                         addLiteral(model.createProperty(utPrefix + "relation"), "enemy"));
             }
             else {
-                utNode.addLiteral(model.createProperty(utPrefix + aimsAtDefaultRelation), "enemy");
+                utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "priority"), 1).
+                        addLiteral(model.createProperty(utPrefix + "relation"), "enemy").
+                        addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 1))); // base
+                utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "priority"), 2).
+                        addLiteral(model.createProperty(utPrefix + "relation"), "enemy"));
+            }
+            switch (ID) {
+                case 4 -> {
+                    createPrefers(utNode, model, model.createResource(utPrefix + 3), "enemy", "over", 0.5, 1.);
+                    createPrefers(utNode, model, model.createResource(utPrefix + 6), "enemy", "over", 0.15, 0.5);
+                }
+                case 5 -> {
+                    createPrefers(utNode, model, model.createResource(utPrefix + 4), "enemy", "over", 0.25, 0.5);
+                    createPrefers(utNode, model, model.createResource(utPrefix + 3), "friendly", "over", 0.5, 0.5);
+                }
+                case 6 -> {
+                    createPrefers(utNode, model, model.createResource(utPrefix + 4), "enemy", "below", 0.3, 1.);
+                    createPrefers(utNode, model, model.createResource(utPrefix + 5), "enemy", "over", 0.15, 0.5);
+                }
             }
         }
         if (!isResource) {
@@ -523,6 +557,20 @@ public class UnitType {
             }
         }
         return utNode;
+    }
+
+    public static void createPrefers(Resource utNode, Model model, Resource unit, String relation, String how, double fraction, double weight) {
+        createPrefers(utNode, model, unit, relation, how, fraction, weight, 0.);
+    }
+
+    public static void createPrefers(Resource utNode, Model model, Resource unit, String relation, String how, double fraction, double weight, double reverseWeight) {
+        utNode.addProperty(model.createProperty(GameGraph.UNIT_PREFIX + "prefers"), model.createResource().
+                addProperty(model.createProperty(GameGraph.UNIT_PREFIX + "unit"), unit).
+                addLiteral(model.createProperty(GameGraph.UNIT_PREFIX + "relation"), relation).
+                addLiteral(model.createProperty(GameGraph.UNIT_PREFIX + "how"), how).
+                addLiteral(model.createProperty(GameGraph.UNIT_PREFIX + "fraction"), fraction).
+                addLiteral(model.createProperty(GameGraph.UNIT_PREFIX + "weight"), weight).
+                addLiteral(model.createProperty(GameGraph.UNIT_PREFIX + "reverseWeight"), reverseWeight));
     }
 
     public static ArrayList<String> getNumericalFields() {
