@@ -774,7 +774,7 @@ public class UnitAction {
                 case TYPE_HARVEST -> "neutral";
                 case TYPE_ATTACK_LOCATION -> "enemy";
                 case TYPE_MOVE, TYPE_PRODUCE -> "empty";
-                default -> "friendly";
+                default -> "self";
             });
             atNodes.put(actionType, atNode);
         }

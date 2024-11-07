@@ -409,7 +409,7 @@ public class UnitType {
                     addProperty(model.createProperty(utPrefix + "if"), model.createResource().
                             addLiteral(model.createProperty(utPrefix + "statistic"), "resources").
                             addLiteral(model.createProperty(utPrefix + "value"), "high")));
-            createPrefers(utNode, model, model.createResource(utPrefix + 3), "friendly", "below", 0.5, 6., 0.5);
+            createPrefers(utNode, model, model.createResource(utPrefix + 3), "friendly", "below", 0.5, 4., 0.5);
         }
         if (isResource) {
             atHarvestNode.addProperty(model.createProperty(atPrefix + targetsRelation), utNode);
