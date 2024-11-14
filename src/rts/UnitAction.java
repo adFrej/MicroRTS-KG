@@ -779,18 +779,18 @@ public class UnitAction {
             atNodes.put(actionType, atNode);
         }
 
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "hp", "self", "high", 0.2);
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "hp", "target", "low", 0.6);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "hp", "self", "high", 1.0);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "hp", "target", "low", 1.0);
         createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "resources", "target", "high", 0.4);
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_HARVEST), 0.3);
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_RETURN), 0.3);
-        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_PRODUCE), 0.3);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_HARVEST), 0.5);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_RETURN), 0.5);
+        createPrefers(atNodes.get(TYPE_ATTACK_LOCATION), model, "action", "target", atNodes.get(TYPE_PRODUCE), 0.5);
 
         createNeeds(atNodes.get(TYPE_HARVEST), model, "resources", "self", "low");
-        createPrefers(atNodes.get(TYPE_HARVEST), model, "resources", "self", "low", 5.0);
+        createPrefers(atNodes.get(TYPE_HARVEST), model, "resources", "self", "low", 4.0);
 
         createNeeds(atNodes.get(TYPE_RETURN), model, "resources", "self", "high");
-        createPrefers(atNodes.get(TYPE_RETURN), model, "resources", "self", "high", 5.0);
+        createPrefers(atNodes.get(TYPE_RETURN), model, "resources", "self", "high", 4.0);
 
         createPrefers(atNodes.get(TYPE_MOVE), model, "resources", "self", "high", 0.2);
         createPrefers(atNodes.get(TYPE_MOVE), model, "hp", "self", "low", 0.2);
