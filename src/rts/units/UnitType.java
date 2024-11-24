@@ -450,6 +450,18 @@ public class UnitType {
                 UnitAction.createPrefers(atProduceNode, model, "unit", "self", utNode, -3.0);
                 utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
                         addLiteral(model.createProperty(utPrefix + "priority"), 0).
+                        addLiteral(model.createProperty(utPrefix + "relation"), "friendly").
+                        addLiteral(model.createProperty(utPrefix + "range"), 2).
+                        addLiteral(model.createProperty(utPrefix + "weight"), -5.0).
+                        addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 1))); // base
+                utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "priority"), 1).
+                        addLiteral(model.createProperty(utPrefix + "relation"), "neutral").
+                        addLiteral(model.createProperty(utPrefix + "range"), 3).
+                        addLiteral(model.createProperty(utPrefix + "weight"), -5.0).
+                        addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 0))); // resource
+                utNode.addProperty(model.createProperty(utPrefix + aimsAtRelation), model.createResource().
+                        addLiteral(model.createProperty(utPrefix + "priority"), 2).
                         addLiteral(model.createProperty(utPrefix + "relation"), "enemy").
                         addLiteral(model.createProperty(utPrefix + "weight"), 1.0).
                         addProperty(model.createProperty(utPrefix + "unit"), model.createResource(utPrefix + 1))); // base
